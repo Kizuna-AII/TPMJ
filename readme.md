@@ -1,6 +1,7 @@
 # Transparent Mahjong
 
 本项目为参考斗牌传说瓦西子麻雀战规则，制作的透明麻雀（Transparent Mahjong）。预计支持线上对战。不打算商用，可能包含无版权素材。
+目前仍在前期开发中。
 
 # Environment
 
