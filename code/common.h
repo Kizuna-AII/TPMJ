@@ -23,6 +23,33 @@ enum class DeckPosition
 };
 
 
+// for 13 + 1 cards
+enum class DeckStatus
+{
+    Agari,          // 有役和牌
+    YakunaiAgari,   // 无役和牌
+    Ten,            // 13张牌已形式听牌（包含无役听牌）
+    NoTen,          // 13张牌未听牌（13+1可能听牌）
+};
+
+// Agari Type
+enum class AgariType
+{
+    Single,     // 单骑
+    TwoSide,    // 两面
+    Middle,     // 嵌张
+    OneSide,    // 边张
+    Tile,       // 对碰
+};
+
+enum class WindType
+{
+    East,
+    South,
+    West,
+    North,
+};
+
 namespace Common
 {
     constexpr int RiverCardsPerRow = 6;
@@ -30,6 +57,12 @@ namespace Common
     constexpr int WindowWidth = 1600;
     constexpr int WindowHeight = 900;
 
+    inline DeckStatus BestDeckStatus(const DeckStatus& lhs, const DeckStatus& rhs)
+    {
+        if (lhs > rhs)
+            return rhs;
+        return lhs;
+    }
     // code: like "D"
     inline DeckPosition getDeckPositionFromCode(const std::string& code)
     {
@@ -94,30 +127,50 @@ namespace Common
         return CardColor::E;
     }
 
-    // code: like "M"
-    inline std::string getCodeFromColor(const CardColor& color)
+    // "M": transparent, "m": normal
+    inline bool isTransparentCard(const std::string& code)
     {
+        if (code == "M" || code == "P" || code == "S" || code == "Z")
+            return true;
+        return false;
+    }
+
+    // 0: red, non-zero: non-red
+    inline bool isRedCard(const int& num)
+    {
+        if (num == 0)
+            return true;
+        return false;
+    }
+
+    // code: like "M"
+    inline std::string getCodeFromColor(const CardColor& color, const bool& isTransparent)
+    {
+        std::string result = "";
         switch(color)
         {
         case CardColor::M:
-            return "m";
+            result = "m";
             break;
         case CardColor::P:
-            return "p";
+            result = "p";
             break;
         case CardColor::S:
-            return "s";
+            result = "s";
             break;
         case CardColor::Z:
-            return "z";
+            result = "z";
             break;
         case CardColor::U:
-            return "u";
+            result = "u";
             break;
         case CardColor::E:
-            return "e";
+            result = "e";
             break;
         }
+        if (isTransparent)
+            std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+        return result;
     }
 }
 

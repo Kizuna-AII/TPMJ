@@ -32,6 +32,10 @@ set(PROJECT_SOURCES
         deck.h
         deckwidget.h
         deckwidget.cpp
+        tpmjgame.h
+        tpmjgame.cpp
+        deckanalyzer.h
+        deckanalyzer.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

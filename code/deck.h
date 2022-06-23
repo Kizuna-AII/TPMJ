@@ -46,6 +46,10 @@ public:
     {
         return this->_cards[index];
     }
+    std::vector<Card> getCards() const
+    {
+        return this->_cards;
+    }
     void addCard(const Card& card)
     {
         this->_cards.push_back(card);
@@ -64,6 +68,8 @@ public:
         }
         return code;
     }
+
+
 
     // code: like 123p456s789m111z11u
     static std::vector<Card> getCardsFromCode(const std::string& code)
