@@ -2,9 +2,40 @@
 #define DECKANALYZER_H
 
 #include "deck.h"
+#include "gamestatus.h"
 #include <set>
 #include <QDebug>
 #include <iostream>
+
+class AgariPoint
+{
+public:
+    // rongPlayerIndex == agariPlayerIndex means tsumo
+    AgariPoint(
+            const int& han, const int& fu,
+            const int& agariPlayerIndex, const int& rongPlayerIndex,
+            const std::shared_ptr<GameStatus> gameStatus
+        )
+        : _han(han), _fu(fu), _agariPlayerIndex(agariPlayerIndex), _gameStatus(gameStatus)
+    {
+
+    }
+    std::vector<int> calcPoint()
+    {
+        return _playerPointChange;
+    }
+    bool isTsumo() const
+    {
+        return _agariPlayerIndex == _rongPlayerIndex;
+    }
+private:
+    int _han;
+    int _fu;
+    int _agariPlayerIndex;
+    int _rongPlayerIndex;
+    const std::shared_ptr<GameStatus> _gameStatus;
+    std::vector<int> _playerPointChange;
+};
 
 class DeckAnalyzer
 {
@@ -28,15 +59,15 @@ public:
         this->_bestDeckStatus = DeckStatus::NoTen;
         this->_pseudoArr = getPseudoArray();
         this->_pseudoJudgeCard = _judgeCard->getPseudoNum();
-        this->_checkCardsNow = -1;
-        this->_checkCardsTotal.clear();
+        this->_waitingCardsNow = -1;
+        this->_waitingCardsTotal.clear();
         if (this->_handDeck->getCardSize() % 3 != 1)
             return DeckStatus::NoTen;
         dfs(1, this->_handDeck->getCardSize(), true, false, 1);
         qDebug() << "status: " << int(this->_bestDeckStatus);
         qDebug() << "best point: " << int(this->_bestPoint);
         qDebug() << "check cards: ";
-        for (const auto& cardNum: this->_checkCardsTotal)
+        for (const auto& cardNum: this->_waitingCardsTotal)
             qDebug() << Card::getCardFromPseudoNum(cardNum).getCode().c_str() << " ";
         qDebug() << "\n";
         return this->_bestDeckStatus;
@@ -59,7 +90,7 @@ protected:
     {
         if (cardsNum == 0) // tenpai
         {
-            if (this->_checkCardsNow == _pseudoJudgeCard) // agari
+            if (this->_waitingCardsNow == _pseudoJudgeCard) // agari
             {
                 int point = getDeckTotalPoint();
                 // update best point
@@ -73,7 +104,7 @@ protected:
             {
                 _bestDeckStatus = Common::BestDeckStatus(_bestDeckStatus, DeckStatus::Ten);
             }
-            this->_checkCardsTotal.insert(_checkCardsNow);
+            this->_waitingCardsTotal.insert(_waitingCardsNow);
             return;
         }
         if (num >= 171)
@@ -86,8 +117,8 @@ protected:
                 _pseudoArr[num + 1]--;
                 _pseudoArr[num + 2]--;
                 _pieces[threeIndex] = {num, num + 1, num + 2};
-                this->_checkCardsNow = num;
-                this->_agariType = AgariType::TwoSide;
+                this->_waitingCardsNow = num;
+                this->_waitingType = WaitingType::TwoSide;
                 this->_agariPieceIndex = threeIndex;
                 dfs(num, cardsNum - 2, false, foundHead, threeIndex + 1);
                 _pseudoArr[num + 1]++;
@@ -116,8 +147,8 @@ protected:
                 {
                     _pseudoArr[num] -= 2;
                     _pieces[threeIndex] = {num, num, num};
-                    this->_checkCardsNow = num;
-                    this->_agariType = AgariType::Tile;
+                    this->_waitingCardsNow = num;
+                    this->_waitingType = WaitingType::Tile;
                     this->_agariPieceIndex = threeIndex;
                     dfs(num, cardsNum - 2, false, foundHead, threeIndex + 1);
                     _pseudoArr[num] += 2;
@@ -142,8 +173,8 @@ protected:
                     _pseudoArr[num]--;
                     _pseudoArr[num + 2]--;
                     _pieces[threeIndex] = {num, num + 1, num + 2};
-                    this->_checkCardsNow = num + 1;
-                    this->_agariType = AgariType::Middle;
+                    this->_waitingCardsNow = num + 1;
+                    this->_waitingType = WaitingType::Middle;
                     this->_agariPieceIndex = threeIndex;
                     dfs(num, cardsNum - 2, false, foundHead, threeIndex + 1);
                     _pseudoArr[num]++;
@@ -156,8 +187,8 @@ protected:
                     _pseudoArr[num]--;
                     _pseudoArr[num + 1]--;
                     _pieces[threeIndex] = {num, num + 1, num + 2};
-                    this->_checkCardsNow = num + 2;
-                    this->_agariType = AgariType::TwoSide;
+                    this->_waitingCardsNow = num + 2;
+                    this->_waitingType = WaitingType::TwoSide;
                     this->_agariPieceIndex = threeIndex;
                     dfs(num, cardsNum - 2, false, foundHead, threeIndex + 1);
                     _pseudoArr[num]++;
@@ -181,8 +212,8 @@ protected:
                 {
                     _pseudoArr[num] -= 1;
                     _pieces[0] = {num, num};
-                    this->_checkCardsNow = num;
-                    this->_agariType = AgariType::Single;
+                    this->_waitingCardsNow = num;
+                    this->_waitingType = WaitingType::Single;
                     this->_agariPieceIndex = 0;
                     dfs(num, cardsNum - 1, false, false, threeIndex);
                     _pseudoArr[num] += 1;
@@ -229,9 +260,9 @@ protected:
     int getFu() const
     {
         int fu = 20;
-        if (this->_agariType == AgariType::Single ||
-            this->_agariType == AgariType::Middle ||
-            this->_agariType == AgariType::OneSide)
+        if (this->_waitingType == WaitingType::Single ||
+            this->_waitingType == WaitingType::Middle ||
+            this->_waitingType == WaitingType::OneSide)
         {
             fu += 2;
         }
@@ -306,10 +337,10 @@ private:
     int _pseudoJudgeCard = 0;
     DeckStatus _bestDeckStatus = DeckStatus::NoTen;
     int _bestPoint = 0;
-    int _checkCardsNow; // the cards are able to formally agari now
-    std::set<int> _checkCardsTotal; // the cards are able to formally agari totally
+    int _waitingCardsNow; // the cards are able to formally agari now
+    std::set<int> _waitingCardsTotal; // the cards are able to formally agari totally
     std::array<std::vector<int>, 10> _pieces;
-    AgariType _agariType;
+    WaitingType _waitingType;
     int _agariPieceIndex;
 
     bool _isClean;

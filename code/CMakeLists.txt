@@ -36,6 +36,8 @@ set(PROJECT_SOURCES
         tpmjgame.cpp
         deckanalyzer.h
         deckanalyzer.cpp
+        gamestatus.h
+        gamestatus.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

@@ -32,8 +32,8 @@ enum class DeckStatus
     NoTen,          // 13张牌未听牌（13+1可能听牌）
 };
 
-// Agari Type
-enum class AgariType
+// 听牌形状s
+enum class WaitingType
 {
     Single,     // 单骑
     TwoSide,    // 两面
@@ -52,10 +52,34 @@ enum class WindType
 
 namespace Common
 {
-    constexpr int RiverCardsPerRow = 6;
-    constexpr int DefaultCardMaxNum = 14;
-    constexpr int WindowWidth = 1600;
-    constexpr int WindowHeight = 900;
+    constexpr int TotalPlayerNum        = 4;
+    constexpr int RiverCardsPerRow      = 6;
+    constexpr int DefaultCardMaxNum     = 14;
+    constexpr int WindowWidth           = 1600;
+    constexpr int WindowHeight          = 900;
+    constexpr int DefaultPlayerPoint    = 25000;
+    constexpr WindType StartFieldWind   = WindType::East;
+    constexpr WindType EndFieldWind     = WindType::West;
+
+    inline WindType NextWind(const WindType& wind)
+    {
+        switch(wind)
+        {
+        case WindType::East:
+            return WindType::South;
+            break;
+        case WindType::South:
+            return WindType::West;
+            break;
+        case WindType::West:
+            return WindType::North;
+            break;
+        case WindType::North:
+            return WindType::East;
+            break;
+        }
+        return WindType::East;
+    }
 
     inline DeckStatus BestDeckStatus(const DeckStatus& lhs, const DeckStatus& rhs)
     {
