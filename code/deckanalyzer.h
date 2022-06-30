@@ -3,39 +3,12 @@
 
 #include "deck.h"
 #include "gamestatus.h"
+#include "agaripoint.h"
 #include <set>
 #include <QDebug>
 #include <iostream>
 
-class AgariPoint
-{
-public:
-    // rongPlayerIndex == agariPlayerIndex means tsumo
-    AgariPoint(
-            const int& han, const int& fu,
-            const int& agariPlayerIndex, const int& rongPlayerIndex,
-            const std::shared_ptr<GameStatus> gameStatus
-        )
-        : _han(han), _fu(fu), _agariPlayerIndex(agariPlayerIndex), _gameStatus(gameStatus)
-    {
 
-    }
-    std::vector<int> calcPoint()
-    {
-        return _playerPointChange;
-    }
-    bool isTsumo() const
-    {
-        return _agariPlayerIndex == _rongPlayerIndex;
-    }
-private:
-    int _han;
-    int _fu;
-    int _agariPlayerIndex;
-    int _rongPlayerIndex;
-    const std::shared_ptr<GameStatus> _gameStatus;
-    std::vector<int> _playerPointChange;
-};
 
 class DeckAnalyzer
 {
@@ -43,16 +16,17 @@ public:
     DeckAnalyzer(
             std::shared_ptr<Deck> handDeck, std::shared_ptr<Card> judgeCard,
             const WindType& fieldWind, const WindType& selfWind,
-            const bool& isBanker, const bool& isTsumo,
-            const bool& isClean)
+            const bool& isClean, const AgariInfo& info)
         : _handDeck(handDeck), _judgeCard(judgeCard),
           _fieldWind(fieldWind), _selfWind(selfWind),
-          _isBanker(isBanker), _isTsumo(isTsumo),
-          _isClean(isClean)
+          _isClean(isClean), _info(info)
     {
 
     }
-
+    AgariInfo getInfo() const
+    {
+        return this->_info;
+    }
     DeckStatus checkDeckStatus()
     {
         this->_bestPoint = 0;
@@ -222,40 +196,10 @@ protected:
             }
         }
     }
-    int getDeckTotalPoint() const
+    int getDeckTotalPoint()
     {
-        int fu = getFu();
-        int han = getHan();
-        int single = fu * (2 << (han + 1));;
-        int point = 1000;
-        if (this->_isTsumo)
-        {
-            int child_part =  single;
-            if (child_part % 100 != 0)
-                child_part = child_part / 100 * 100 + 100;
-            int banker_part =  2 * single;
-            if (banker_part % 100 != 0)
-                banker_part = banker_part / 100 * 100 + 100;
-            if (this->_isBanker)
-                point = banker_part * 3;
-            else
-                point = banker_part + child_part * 2;
-        } else
-        {
-            if (this->_isBanker)
-            {
-                point = 6 * single;
-                if (point % 100 != 0)
-                    point = point / 100 * 100 + 100;
-            }
-            else
-            {
-                point = 4 * single;
-                if (point % 100 != 0)
-                    point = point / 100 * 100 + 100;
-            }
-        }
-        return point;
+        _agariPoint.reset(new AgariPoint(this->getHan(), this->getFu(), this->getInfo()));
+        return _agariPoint->getTotalPoint();
     }
     int getFu() const
     {
@@ -268,6 +212,7 @@ protected:
         }
         int fieldWindNum = (int(this->_fieldWind) + 1) * 10 + 100;
         int selfWindNum = (int(this->_selfWind) + 1) * 10 + 100;
+        // 自风、场风、中白发
         if (this->_pieces[0][0] == fieldWindNum)
             fu += 2;
         if (this->_pieces[0][0] == selfWindNum)
@@ -278,7 +223,7 @@ protected:
             fu += 2;
         if (this->_pieces[0][0] == 170)
             fu += 2;
-        if (this->_isClean && !this->_isTsumo)
+        if (this->_isClean && !this->getInfo().isTsumo())
             fu += 10;
         for (int i = 1; i <= 4; i++)
         {
@@ -287,7 +232,7 @@ protected:
             {
                 Card card = Card::getCardFromPseudoNum(_pieces[i][0]);
                 bool Dark = true;
-                if (!this->_isTsumo && this->_agariPieceIndex == i) // 荣和计明刻
+                if (!this->getInfo().isTsumo() && this->_agariPieceIndex == i) // 荣和计明刻
                     Dark = false;
                 int addBase = 2;
                 if (card.is19Card())
@@ -297,13 +242,13 @@ protected:
                 fu += addBase;
             }
         }
-        if (this->_isTsumo)
+        if (this->getInfo().isTsumo())
         {
             if (fu == 20 && this->_isClean) // 平和自摸计20
                 fu = 20;
             else fu += 2;
         }
-        if (!this->_isTsumo && fu == 20) // 副露平和型计30
+        if (!this->getInfo().isTsumo() && fu == 20) // 副露平和型计30
         {
             fu = 30;
         }
@@ -313,9 +258,20 @@ protected:
         }
         return fu;
     }
+    int getYaku() const;
+    int getDoraNum() const
+    {
+        return 1;
+    }
     int getHan() const
     {
-        return 2;
+        int yaku = getYaku();
+        if (yaku == 0) // Yaku nashi
+        {
+            return 0;
+        }
+        int doraNum = getDoraNum();
+        return yaku + doraNum;
     }
     int getRedCardsNum() const
     {
@@ -332,20 +288,25 @@ protected:
             result[card.getPseudoNum()]++;
         return result;
     }
+
+protected:
+
 private:
     std::array<int, 220> _pseudoArr {0};
     int _pseudoJudgeCard = 0;
     DeckStatus _bestDeckStatus = DeckStatus::NoTen;
     int _bestPoint = 0;
     int _waitingCardsNow; // the cards are able to formally agari now
-    std::set<int> _waitingCardsTotal; // the cards are able to formally agari totally
+    std::set<int> _waitingCardsTotal; // the cards are able to formally agari in total
     std::array<std::vector<int>, 10> _pieces;
     WaitingType _waitingType;
     int _agariPieceIndex;
+    std::shared_ptr<AgariPoint> _agariPoint;
+    AgariInfo _info;
 
     bool _isClean;
-    bool _isTsumo;
-    bool _isBanker;
+//    bool _isTsumo;
+//    bool _isBanker;
     WindType _fieldWind;
     WindType _selfWind;
     std::shared_ptr<Deck> _handDeck;

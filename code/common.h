@@ -50,16 +50,64 @@ enum class WindType
     North,
 };
 
+enum class YakuName
+{
+    // 1 Han
+    Reach,          // 立直
+    IPpaTsu,        // 一发
+    MenTsuMo,       // 门前清自摸和
+    TanYao,         // 断幺
+    PinHu,          // 平和
+    IPeKo,          // 一杯口
+    ChanKan,        // 抢杠
+    HaiTei,         // 海底捞月
+    HoTei,          // 河底捞鱼
+    YakuRed,        // 役牌中
+    YakuWhite,      // 役牌白
+    YakuGreen,      // 役牌发
+    YakuEast,       // 役牌东
+    YakuSouth,      // 役牌南
+    YakuWest,       // 役牌西
+    YakuNorth,      // 役牌北
+    DoubleEast,     // 役牌东
+    DoubleSouth,    // 役牌南
+    DoubleWest,     // 役牌西
+    DoubleNorth,    // 役牌北
+
+};
+
 namespace Common
 {
     constexpr int TotalPlayerNum        = 4;
     constexpr int RiverCardsPerRow      = 6;
     constexpr int DefaultCardMaxNum     = 14;
+    constexpr int TotalPieceNumInDeck   = 5;
     constexpr int WindowWidth           = 1600;
     constexpr int WindowHeight          = 900;
     constexpr int DefaultPlayerPoint    = 25000;
     constexpr WindType StartFieldWind   = WindType::East;
     constexpr WindType EndFieldWind     = WindType::West;
+
+    inline WindType getWindFromInt(const int& x)
+    {
+        switch (x)
+        {
+        case 0:
+            return WindType::East;
+            break;
+        case 1:
+            return WindType::South;
+            break;
+        case 2:
+            return WindType::West;
+            break;
+        case 3:
+            return WindType::North;
+            break;
+        }
+        return StartFieldWind;
+    }
+
 
     inline WindType NextWind(const WindType& wind)
     {
@@ -196,6 +244,8 @@ namespace Common
             std::transform(result.begin(), result.end(), result.begin(), ::toupper);
         return result;
     }
+
+
 }
 
 #endif // COMMON_H

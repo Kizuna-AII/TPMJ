@@ -89,6 +89,24 @@ public:
         return (this->_num == 1 || this->_num == 9) && this->_color != CardColor::Z;
     }
 
+    bool isDragonCard() const
+    {
+        return this->_color == CardColor::Z
+                && (this->_num == 5 || this->_num == 6 || this->_num == 7);
+    }
+
+    bool isWindCard() const
+    {
+        return this->_color == CardColor::Z
+                && (this->_num == 1 || this->_num == 2 || this->_num == 3 || this->_num == 4);
+    }
+
+    bool isTargetWind(const WindType& targetWind) const
+    {
+        return this->_color == CardColor::Z
+                && (Common::getWindFromInt((this->_num - 110) / 10) == targetWind);
+    }
+
     static int getPseudoNum(const CardColor& color, const int& num)
     {
         switch (color)

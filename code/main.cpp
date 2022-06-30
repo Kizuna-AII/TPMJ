@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "tpmjgame.h"
 #include "deckanalyzer.h"
-
+#include "agariinfo.h"
 #include <QApplication>
 
 //int main(int argc, char *argv[])
@@ -26,11 +26,11 @@ int main(int argc, char *argv[])
 //    std::shared_ptr<Deck> deck(new Deck("D1112345678999m"));
 //    std::shared_ptr<Deck> deck(new Deck("D1112345678999m"));
     std::shared_ptr<Card> card(new Card("6p"));
+    AgariInfo info(0,0,0);
     DeckAnalyzer anal(
         deck, card,
         WindType::East, WindType::East,
-        true, true,
-        true
+        true, info
     );
     anal.checkDeckStatus();
     return 0;

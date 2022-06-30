@@ -38,6 +38,10 @@ set(PROJECT_SOURCES
         deckanalyzer.cpp
         gamestatus.h
         gamestatus.cpp
+        agaripoint.h
+        agaripoint.cpp
+        agariinfo.h
+        agariinfo.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
