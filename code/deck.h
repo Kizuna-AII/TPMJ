@@ -76,10 +76,16 @@ public:
     {
         std::string buf = "";
         std::vector<Card> result;
-        for (int i = 0; i < code.length(); i++)
+        for (int i = 0; i < code.length();)
         {
-            CardColor color = Common::getColorFromCode(code.substr(i, 1));
-            if (color != CardColor::E) // color char
+            std::string statusColor = "";
+            while (i < code.length() && (code[i] < '0' || code[i] > '9'))
+            {
+                statusColor += code[i];
+                i++;
+            }
+//            CardColor color = Common::getColorFromCode(code.substr(i, 1));
+            if (statusColor.length() > 0) // color char
             {
                 if (buf.length() <= 0) // no number
                 {
@@ -87,13 +93,14 @@ public:
                 }
                 for (const char& buf_ch: buf)
                 {
-                    Card card = Card(color, buf_ch - '0');
+                    Card card = Card(statusColor, buf_ch - '0');
                     result.push_back(card);
                 }
                 buf = "";
             } else
             {
                 buf += code[i];
+                i++;
             }
         }
         return result;

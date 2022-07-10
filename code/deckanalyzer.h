@@ -81,7 +81,7 @@ protected:
             this->_waitingCardsTotal.insert(_waitingCardsNow);
             return;
         }
-        if (num >= 171)
+        if (num >= Card::getPseudoNumFromCode("7z") + 1)
             return;
         if (_pseudoArr[num] == 0) // no card here
         {
@@ -210,8 +210,8 @@ protected:
         {
             fu += 2;
         }
-        int fieldWindNum = (int(this->_fieldWind) + 1) * 10 + 100;
-        int selfWindNum = (int(this->_selfWind) + 1) * 10 + 100;
+        int fieldWindNum = (int(this->_fieldWind) + 1) * 10 + 400;
+        int selfWindNum = (int(this->_selfWind) + 1) * 10 + 400;
         // 自风、场风、中白发
         if (this->_pieces[0][0] == fieldWindNum)
             fu += 2;
@@ -281,9 +281,9 @@ protected:
                 cnt++;
         return cnt;
     }
-    std::array<int, 220> getPseudoArray() const
+    std::array<int, 1010> getPseudoArray() const
     {
-        std::array<int, 220> result {0};
+        std::array<int, 1010> result {0};
         for (const Card& card: this->_handDeck->getCards())
             result[card.getPseudoNum()]++;
         return result;
@@ -292,7 +292,7 @@ protected:
 protected:
 
 private:
-    std::array<int, 220> _pseudoArr {0};
+    std::array<int, 1010> _pseudoArr {0};
     int _pseudoJudgeCard = 0;
     DeckStatus _bestDeckStatus = DeckStatus::NoTen;
     int _bestPoint = 0;

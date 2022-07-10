@@ -169,6 +169,7 @@ namespace Common
             return "L";
             break;
         }
+        return "D";
     }
 
     // code: like "M"
@@ -199,24 +200,24 @@ namespace Common
         return CardColor::E;
     }
 
-    // "M": transparent, "m": normal
-    inline bool isTransparentCard(const std::string& code)
-    {
-        if (code == "M" || code == "P" || code == "S" || code == "Z")
-            return true;
-        return false;
-    }
+//    // "M": transparent, "m": normal
+//    inline bool isTransparentCard(const std::string& code)
+//    {
+//        if (code == "M" || code == "P" || code == "S" || code == "Z")
+//            return true;
+//        return false;
+//    }
 
-    // 0: red, non-zero: non-red
-    inline bool isRedCard(const int& num)
-    {
-        if (num == 0)
-            return true;
-        return false;
-    }
+//    // 0: red, non-zero: non-red
+//    inline bool isRedCard(const int& num)
+//    {
+//        if (num == 0)
+//            return true;
+//        return false;
+//    }
 
     // code: like "M"
-    inline std::string getCodeFromColor(const CardColor& color, const bool& isTransparent)
+    inline std::string getCodeFromColor(const CardColor& color/*, const bool& isTransparent*/)
     {
         std::string result = "";
         switch(color)
@@ -240,8 +241,8 @@ namespace Common
             result = "e";
             break;
         }
-        if (isTransparent)
-            std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+//        if (isTransparent)
+//            std::transform(result.begin(), result.end(), result.begin(), ::toupper);
         return result;
     }
 
